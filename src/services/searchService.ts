@@ -1,7 +1,11 @@
+
 import { SearchResult } from '@/types/search';
 
 // Base URL for the Solr API
 const SOLR_API_URL = 'http://localhost:8983/solr/mrs/select';
+
+// Store previous search results for suggestion extraction
+let previousResults: any[] = [];
 
 export async function performSearch(query: string): Promise<SearchResult[]> {
   try {
@@ -43,11 +47,15 @@ export async function performSearch(query: string): Promise<SearchResult[]> {
     
     const data = await response.json();
     
+    // Store the raw docs for later use in suggestions
+    if (data.response && Array.isArray(data.response.docs)) {
+      previousResults = data.response.docs;
+    }
+    
     // Process the Solr response data to match our SearchResult type
-    // Adjust this based on the actual structure of your Solr response
     if (data.response && Array.isArray(data.response.docs)) {
       return data.response.docs.map((doc: any) => ({
-        title: doc.title || 'Untitled',
+        title: doc.name || doc.title || 'Untitled',
         url: doc.url || '#',
         snippet: doc.description || doc.snippet || 'No description available'
       }));
@@ -62,23 +70,32 @@ export async function performSearch(query: string): Promise<SearchResult[]> {
   }
 }
 
+// Get name suggestions from previous search results
+export function getNameSuggestions(): string[] {
+  const names = previousResults
+    .filter(doc => doc.name)
+    .map(doc => doc.name);
+  
+  return Array.from(new Set(names)); // Remove duplicates
+}
+
 // Mock function to generate sample results for demonstration
 function getMockResults(query: string): SearchResult[] {
   const mockResults: SearchResult[] = [
     {
-      title: `Result about ${query}`,
+      title: `3D Tablet - ${query}`,
       url: `https://example.com/result-1-about-${query.replace(/\s+/g, '-')}`,
-      snippet: `This is a sample search result about ${query}. It provides information about the searched term and relates to the query in multiple ways.`
+      snippet: `This is a medication called ${query}. It provides health benefits and is used for various conditions.`
     },
     {
-      title: `Learn more about ${query} - Comprehensive Guide`,
+      title: `Vitamin ${query} - Comprehensive Guide`,
       url: `https://example.com/learn-about-${query.replace(/\s+/g, '-')}`,
-      snippet: `A comprehensive guide about ${query} with detailed explanations, examples, and related information to help you understand the topic better.`
+      snippet: `A comprehensive guide about ${query} with detailed explanations, examples, and related information to help you understand this medication better.`
     },
     {
-      title: `${query} - Wikipedia`,
+      title: `${query} - Medical Information`,
       url: `https://en.wikipedia.org/wiki/${query.replace(/\s+/g, '_')}`,
-      snippet: `${query} refers to a concept, term, or entity that has various meanings and applications in different contexts. Learn about its history, development, and significance.`
+      snippet: `${query} refers to a medication that has various applications in different medical contexts. Learn about its usage, dosage, and side effects.`
     }
   ];
   

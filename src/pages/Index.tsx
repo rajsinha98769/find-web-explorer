@@ -1,15 +1,16 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import SearchBar from '@/components/SearchBar';
 import ResultsList from '@/components/ResultsList';
 import { useToast } from '@/components/ui/use-toast';
-import { performSearch } from '@/services/searchService';
+import { performSearch, getNameSuggestions } from '@/services/searchService';
 import { Loader2 } from 'lucide-react';
 
 const Index = () => {
   const [query, setQuery] = useState('');
   const [results, setResults] = useState([]);
   const [loading, setLoading] = useState(false);
+  const [suggestions, setSuggestions] = useState<string[]>([]);
   const { toast } = useToast();
 
   const handleSearch = async (searchQuery: string) => {
@@ -21,6 +22,10 @@ const Index = () => {
     try {
       const searchResults = await performSearch(searchQuery);
       setResults(searchResults);
+      
+      // Update suggestions after search is complete
+      const names = getNameSuggestions();
+      setSuggestions(names);
     } catch (error) {
       console.error("Search error:", error);
       toast({
@@ -33,6 +38,11 @@ const Index = () => {
       setLoading(false);
     }
   };
+
+  // Initialize with mock suggestions
+  useEffect(() => {
+    setSuggestions(['3D Tablet', 'Vitamin D3', 'Cholecalciferol']);
+  }, []);
 
   return (
     <div className="min-h-screen flex flex-col items-center bg-gray-50">
