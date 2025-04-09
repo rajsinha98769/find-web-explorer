@@ -19,7 +19,9 @@ const ResultsList = ({ results }: ResultsListProps) => {
 
   return (
     <div className="space-y-4">
-      <h2 className="text-xl font-medium text-gray-700 mb-4">Search Results</h2>
+      <h2 className="text-xl font-medium text-gray-700 mb-4">
+        {results.length} Search Results
+      </h2>
       
       {results.map((result, index) => (
         <Card key={index} className="hover:shadow-md transition-shadow">
@@ -38,6 +40,6 @@ const ResultsList = ({ results }: ResultsListProps) => {
       ))}
     </div>
   );
-};
+}
 
 export default ResultsList;

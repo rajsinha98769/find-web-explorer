@@ -1,26 +1,63 @@
-
 import { SearchResult } from '@/types/search';
 
-// This would be replaced with your actual API URL
-const API_URL = 'https://example.com/api/search';
+// Base URL for the Solr API
+const SOLR_API_URL = 'http://localhost:8983/solr/mrs/select';
 
 export async function performSearch(query: string): Promise<SearchResult[]> {
   try {
-    // In a real implementation, this would make an actual API call
-    // Replace this with your API integration
-    const response = await fetch(`${API_URL}?q=${encodeURIComponent(query)}`);
+    if (!query.trim()) {
+      return [];
+    }
+
+    // Split the query by spaces
+    const keywords = query.trim().split(/\s+/);
+    
+    if (keywords.length === 0) {
+      return [];
+    }
+
+    // Build the URL with the query parameters
+    const searchParams = new URLSearchParams({
+      'indent': 'true',
+      'q.op': 'AND',
+      'useParams': '',
+    });
+
+    // First keyword goes into the main 'q' parameter
+    const firstKeyword = keywords[0];
+    searchParams.append('q', `search_all:${encodeURIComponent(firstKeyword)}`);
+    
+    // Rest of the keywords go into filter queries 'fq'
+    for (let i = 1; i < keywords.length; i++) {
+      searchParams.append('fq', `search_all:${encodeURIComponent(keywords[i])}`);
+    }
+
+    const url = `${SOLR_API_URL}?${searchParams.toString()}`;
+    console.log('Requesting URL:', url);
+    
+    const response = await fetch(url);
     
     if (!response.ok) {
       throw new Error(`HTTP error! status: ${response.status}`);
     }
     
     const data = await response.json();
-    return data.results || [];
     
+    // Process the Solr response data to match our SearchResult type
+    // Adjust this based on the actual structure of your Solr response
+    if (data.response && Array.isArray(data.response.docs)) {
+      return data.response.docs.map((doc: any) => ({
+        title: doc.title || 'Untitled',
+        url: doc.url || '#',
+        snippet: doc.description || doc.snippet || 'No description available'
+      }));
+    }
+    
+    return [];
   } catch (error) {
     console.error("Error performing search:", error);
     
-    // For demo purposes, return mock data if the API call fails
+    // For demo/fallback purposes, return mock data if the API call fails
     return getMockResults(query);
   }
 }

@@ -26,7 +26,7 @@ const SearchBar = ({ onSearch }: SearchBarProps) => {
         </div>
         <Input
           type="text"
-          placeholder="Search the web..."
+          placeholder="Enter multiple keywords separated by spaces..."
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
           className="w-full pl-10 pr-24 py-3 rounded-full border border-gray-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 shadow-sm"
