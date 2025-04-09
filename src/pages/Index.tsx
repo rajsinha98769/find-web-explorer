@@ -3,14 +3,13 @@ import React, { useState, useEffect } from 'react';
 import SearchBar from '@/components/SearchBar';
 import ResultsList from '@/components/ResultsList';
 import { useToast } from '@/components/ui/use-toast';
-import { performSearch, getNameSuggestions } from '@/services/searchService';
+import { performSearch } from '@/services/searchService';
 import { Loader2 } from 'lucide-react';
 
 const Index = () => {
   const [query, setQuery] = useState('');
   const [results, setResults] = useState([]);
   const [loading, setLoading] = useState(false);
-  const [suggestions, setSuggestions] = useState<string[]>([]);
   const { toast } = useToast();
 
   const handleSearch = async (searchQuery: string) => {
@@ -22,10 +21,6 @@ const Index = () => {
     try {
       const searchResults = await performSearch(searchQuery);
       setResults(searchResults);
-      
-      // Update suggestions after search is complete
-      const names = getNameSuggestions();
-      setSuggestions(names);
     } catch (error) {
       console.error("Search error:", error);
       toast({
@@ -39,22 +34,20 @@ const Index = () => {
     }
   };
 
-  // Initialize with mock suggestions
-  useEffect(() => {
-    setSuggestions(['3D Tablet', 'Vitamin D3', 'Cholecalciferol']);
-  }, []);
-
   return (
     <div className="min-h-screen flex flex-col items-center bg-gray-50">
       {/* Header with logo */}
       <header className="w-full py-6 flex justify-center">
-        <h1 className="text-3xl font-bold text-blue-600">Web Explorer</h1>
+        <h1 className="text-3xl font-bold text-blue-600">Medication Search</h1>
       </header>
       
       {/* Search section */}
       <main className="w-full max-w-3xl px-4 flex-1">
-        <div className="mt-8 mb-16">
+        <div className="mt-8 mb-8">
           <SearchBar onSearch={handleSearch} />
+          <p className="text-sm text-gray-500 mt-2">
+            Search example: "vitamin d3 2000" - First keyword is the main search term, additional keywords filter the results.
+          </p>
         </div>
         
         {/* Results or welcome message */}
@@ -67,7 +60,10 @@ const Index = () => {
         ) : (
           <div className="text-center py-12">
             <p className="text-gray-600 text-lg">
-              Search the web to find what you're looking for
+              Search for medications to see results
+            </p>
+            <p className="text-gray-400 text-sm mt-2">
+              Enter keywords separated by spaces to filter results
             </p>
           </div>
         )}
@@ -75,7 +71,7 @@ const Index = () => {
       
       {/* Footer */}
       <footer className="w-full py-4 text-center text-gray-400 text-sm">
-        <p>© {new Date().getFullYear()} Web Explorer Search</p>
+        <p>© {new Date().getFullYear()} Medication Search</p>
       </footer>
     </div>
   );

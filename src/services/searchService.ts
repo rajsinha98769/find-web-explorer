@@ -25,6 +25,7 @@ export async function performSearch(query: string): Promise<SearchResult[]> {
       'indent': 'true',
       'q.op': 'AND',
       'useParams': '',
+      'fl': 'name,description'
     });
 
     // First keyword goes into the main 'q' parameter
@@ -46,6 +47,7 @@ export async function performSearch(query: string): Promise<SearchResult[]> {
     }
     
     const data = await response.json();
+    console.log('Search response:', data);
     
     // Store the raw docs for later use in suggestions
     if (data.response && Array.isArray(data.response.docs)) {
@@ -55,9 +57,9 @@ export async function performSearch(query: string): Promise<SearchResult[]> {
     // Process the Solr response data to match our SearchResult type
     if (data.response && Array.isArray(data.response.docs)) {
       return data.response.docs.map((doc: any) => ({
-        title: doc.name || doc.title || 'Untitled',
-        url: doc.url || '#',
-        snippet: doc.description || doc.snippet || 'No description available'
+        title: doc.name || 'Untitled',
+        url: `#${doc.name}`, // Using name as anchor since we don't have URLs
+        snippet: doc.description ? doc.description[0] : 'No description available'
       }));
     }
     
@@ -84,17 +86,17 @@ function getMockResults(query: string): SearchResult[] {
   const mockResults: SearchResult[] = [
     {
       title: `3D Tablet - ${query}`,
-      url: `https://example.com/result-1-about-${query.replace(/\s+/g, '-')}`,
+      url: `#3D-Tablet`,
       snippet: `This is a medication called ${query}. It provides health benefits and is used for various conditions.`
     },
     {
       title: `Vitamin ${query} - Comprehensive Guide`,
-      url: `https://example.com/learn-about-${query.replace(/\s+/g, '-')}`,
+      url: `#Vitamin-Guide`,
       snippet: `A comprehensive guide about ${query} with detailed explanations, examples, and related information to help you understand this medication better.`
     },
     {
       title: `${query} - Medical Information`,
-      url: `https://en.wikipedia.org/wiki/${query.replace(/\s+/g, '_')}`,
+      url: `#Medical-Info`,
       snippet: `${query} refers to a medication that has various applications in different medical contexts. Learn about its usage, dosage, and side effects.`
     }
   ];
