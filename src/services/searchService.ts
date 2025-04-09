@@ -1,8 +1,8 @@
 
 import { SearchResult } from '@/types/search';
 
-// Base URL for the Solr API
-const SOLR_API_URL = 'http://localhost:8983/solr/mrs/select';
+// Base URL for the Solr API - now using the proxy
+const SOLR_API_URL = '/solr/mrs/select';
 
 // Store previous search results for suggestion extraction
 let previousResults: any[] = [];
@@ -19,6 +19,8 @@ export async function performSearch(query: string): Promise<SearchResult[]> {
     if (keywords.length === 0) {
       return [];
     }
+
+    console.log('Keywords after split:', keywords); // Debugging log
 
     // Build the URL with the query parameters
     const searchParams = new URLSearchParams({

@@ -1,4 +1,3 @@
-
 import React, { useState, FormEvent, useEffect, useRef } from 'react';
 import { Search } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -52,7 +51,33 @@ const SearchBar = ({ onSearch }: SearchBarProps) => {
       
       setLoading(true);
       try {
-        const response = await fetch(`http://localhost:8983/solr/mrs/select?indent=true&q.op=AND&useParams=&fl=name,description&q=search_all:${encodeURIComponent(searchQuery)}`);
+        // Split query by space and format as required
+        const keywords = searchQuery.trim().split(/\s+/);
+        
+        if (keywords.length === 0) {
+          setSuggestions([]);
+          setLoading(false);
+          return;
+        }
+        
+        // Create search params
+        const searchParams = new URLSearchParams({
+          'indent': 'true',
+          'q.op': 'AND',
+          'useParams': '',
+          'fl': 'name,description'
+        });
+        
+        // First keyword goes into the main 'q' parameter
+        const firstKeyword = keywords[0];
+        searchParams.append('q', `search_all:${encodeURIComponent(firstKeyword)}`);
+        
+        // Rest of the keywords go into filter queries 'fq'
+        for (let i = 1; i < keywords.length; i++) {
+          searchParams.append('fq', `search_all:${encodeURIComponent(keywords[i])}`);
+        }
+        
+        const response = await fetch(`/solr/mrs/select?${searchParams.toString()}`);
         const data = await response.json();
         
         if (data.response && Array.isArray(data.response.docs)) {
